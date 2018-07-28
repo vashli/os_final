@@ -29,6 +29,13 @@ struct basic_data bas_data;
 struct storage_data storages_data[128];
 int storages_count = -1;
 
+int check_parsing();
+int str_to_int(char* str);
+int parse_cache_size(char* last_token);
+int parse_config_file(char* file_name);
+void parsing_error();
+
+
 void parsing_error() {
     printf("STOP!! couldn't parse config file\n");
 }
@@ -75,12 +82,35 @@ int parse_cache_size(char* last_token){
 }
 
 
-int parse_basic_data(char * last_token){
+int check_parsing(){
+    printf("basic_data:\n");
+    printf("errorlog %s\n", bas_data.errorlog);
+    printf("cache_size %d\n", bas_data.cache_size);
+    printf("cache_replacment %s\n", bas_data.cache_replacment);
+    printf("timeout %d\n", bas_data.timeout);
 
-}
+    printf("storages_count %d\n", storages_count  );
+    if(storages_count <= 0) {
+        return -1;
+    }
+    int i = 0;
+    for(; i < storages_count; i++){
+        struct storage_data stor = storages_data[i];
+        printf("storage %d:\n", i);
 
-int parse_storage_data(char * last_token){
+        printf("diskname %s\n", stor.diskname);
+        printf("mountpoint %s\n", stor.mountpoint);
+        printf("raid %d\n", stor.raid);
+        printf("servers_num %d\n", stor.servers_num);
 
+        int j = 0;
+        for(; j < stor.servers_num; j++){
+            struct server serv = stor.servers[j];
+            printf("server %d, ip = %s, port = %d\n",j, serv.ip, serv.port );
+        }
+        printf("hotswap, ip = %s, port = %d\n", stor.hotswap.ip, stor.hotswap.port );
+
+    }
 }
 
 int parse_config_file(char* file_name){
@@ -110,7 +140,11 @@ int parse_config_file(char* file_name){
                         parsing_error();
                     }
                 }else if(token == 8){
-
+                    if(strlen(last_token) !=3) {
+                        parsing_error();
+                    }else{
+                        strcpy(bas_data.cache_replacment, last_token);
+                    }
                 }else if(token == 11){
                     int timeout = str_to_int(last_token);
                     if(timeout < 0){
@@ -146,7 +180,7 @@ int parse_config_file(char* file_name){
                         hotswap_index = 0;
                         // printf("server index 000000000000000000\n" );
                     }else if(token_in_storage > 10 && (server_index >= 0 || hotswap_index != -1)
-                             && strcmp(last_token, "=") != 0){
+                            && strcmp(last_token, "=") != 0){
 
                         char ip[32];
                         char port[11];
@@ -171,23 +205,12 @@ int parse_config_file(char* file_name){
                             if(server_index >= 0){
                                 storages_data[storages_count].servers_num = server_index+1;
                                 strcpy(storages_data[storages_count].servers[server_index].ip, ip);
-                                printf("(storages_data[%d].servers[%d].ip %s\n",
-                                       storages_count, server_index, storages_data[storages_count].servers[server_index].ip );
-
-
                                 storages_data[storages_count].servers[server_index].port = por;
-                                printf("(storages_data[%d].servers[%d].port %d\n",
-                                       storages_count, server_index, storages_data[storages_count].servers[server_index].port );
                                 server_index++;
                             }else{
                                 strcpy(storages_data[storages_count].hotswap.ip, ip);
-                                printf("(storages_data[%d].hotswap.ip %s\n",
-                                       storages_count, storages_data[storages_count].hotswap.ip );
-
                                 storages_data[storages_count].hotswap.port = por;
-                                printf("(storages_data[%d].hotswap.port %d\n",
-                                       storages_count, storages_data[storages_count].hotswap.port );
-
+                                hotswap_index = -1;
                             }
                         }
 
@@ -200,7 +223,11 @@ int parse_config_file(char* file_name){
 
         }
         fclose(file );
+        storages_count++;
+        if(check_parsing()== -1){
+            parsing_error();
+        }
     }else{
-        printf("wasn't able to open config file\n" );
+    printf("wasn't able to open config file\n" );
     }
 }
