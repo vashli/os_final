@@ -100,7 +100,32 @@ static struct fuse_operations operations = {
 };
 
 
+int connect_to_servers(int index){
+    int sfd;
+    struct sockaddr_in addr;
+    int ip;
+    char buf[1024];
+    sfd = socket(AF_INET, SOCK_STREAM, 0);
+    inet_pton(AF_INET, "127.0.0.1", &ip);
 
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(5000);
+    addr.sin_addr.s_addr = ip;
+
+    int connection_status = connect(sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
+    if(connection_status == -1){
+        printf("error with the connection\n" );
+    }else   printf("connected\n" );
+
+    write(sfd, "qwe", 3);
+    // read(sfd, &buf, 3);
+    // printf("read from server: %s\n", buf);
+    // sleep(600);
+
+    //mount via fuse
+
+    // close(sfd);
+}
 
 int main(int argc, char *argv[]){
     printf("client main\n");
@@ -120,6 +145,11 @@ int main(int argc, char *argv[]){
 
             else if (pid == 0) { // child process
                 printf("in child\n" );
+
+
+
+                connect_to_servers(i);
+
 
                 // run in background
                 // strcpy(argv[1], stor.mountpoint);
