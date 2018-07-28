@@ -114,8 +114,8 @@ int check_parsing(){
 }
 
 int parse_config_file(char* file_name){
-    int buffer_size = 1024;
     const char *delimiter_characters = "\n ,";
+    int buffer_size = 1024;
     char buffer[buffer_size];
     char *last_token;
     FILE * file = fopen( file_name , "r");
@@ -138,10 +138,12 @@ int parse_config_file(char* file_name){
                 }else if(token == 5){
                     if (parse_cache_size(last_token) == -1){
                         parsing_error();
+                        return -1;
                     }
                 }else if(token == 8){
                     if(strlen(last_token) !=3) {
                         parsing_error();
+                        return -1;
                     }else{
                         strcpy(bas_data.cache_replacment, last_token);
                     }
@@ -149,6 +151,7 @@ int parse_config_file(char* file_name){
                     int timeout = str_to_int(last_token);
                     if(timeout < 0){
                         parsing_error();
+                        return -1;
                     }else{
                         bas_data.timeout = timeout;
                     }
@@ -169,6 +172,7 @@ int parse_config_file(char* file_name){
                         int raid = str_to_int(last_token);
                         if(raid != 1 && raid != 5){
                             parsing_error();
+                            return -1;
                         }else{
                             storages_data[storages_count].raid = raid;
                         }
@@ -201,6 +205,7 @@ int parse_config_file(char* file_name){
                         int por = str_to_int(port);
                         if(por < 0){
                             parsing_error();
+                            return -1;
                         }else{
                             if(server_index >= 0){
                                 storages_data[storages_count].servers_num = server_index+1;
@@ -226,8 +231,12 @@ int parse_config_file(char* file_name){
         storages_count++;
         if(check_parsing()== -1){
             parsing_error();
+            return -1;
         }
+
+        return 0;
     }else{
-    printf("wasn't able to open config file\n" );
+        printf("wasn't able to open config file\n" );
+        return -1;
     }
 }
