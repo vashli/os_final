@@ -4,25 +4,28 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fuse.h>
+#include <dirent.h>
+
+#include "constants.h"
 struct server{
     char ip[32];
     int port;
 };
 
 struct basic_data {
-    char errorlog[256];
+    char errorlog[PATH_MAX];
     int cache_size;
-    char cache_replacment[3];
+    char cache_replacment[CACHE_REPL_ALG_SIZE];
     int timeout;
 };
 
 
 struct storage_data{
-    char diskname[256];
-    char mountpoint[256];
+    char diskname[MAX_FILES_NAME];
+    char mountpoint[PATH_MAX];
     int raid;
     int servers_num;
-    struct server servers[64];
+    struct server servers[MAX_SERVERS_ON_STORAGE];
     struct server hotswap;
 };
 
@@ -32,10 +35,10 @@ struct storage_data{
 #pragma pack(1)   // this helps to pack the struct to 5-bytes
 struct syscall_data_client{
     int syscall;
-    char path[256];
+    char path[PATH_MAX];
     mode_t mode;
     struct fuse_file_info fi;
-    char new_path[256];
+    char new_path[PATH_MAX];
 };
 
 //readdir_names size???? 128 file * (16) saxelis_zoma
@@ -44,17 +47,10 @@ struct syscall_data_server{
     struct fuse_file_info fi;
     int res;
     int dir_n_files;
-    char readdir_names[128][16];
+    char readdir_names[MAX_FILES_NUM][MAX_FILES_NAME];
 };
 
-// struct getattr_client{
-//     char path[256];
-// };
-//
-// struct getattr_sever{
-//     struct stat st;
-//     int res;
-// };
-#endif
-
 #pragma pack(0)   // turn packing off
+
+
+#endif

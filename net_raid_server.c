@@ -62,7 +62,7 @@ void server_do_readdir( struct syscall_data_client *receive_data,
     }
     int i = 0;
     do {
-        if (strlen(de->d_name) > 16) {
+        if (strlen(de->d_name) > MAX_FILES_NAME) {
             printf("filename too large %s\n", de->d_name );
             // receive_data.filler(send_data.readdir_buffer, de->d_name, NULL, 0) != 0
 
@@ -115,7 +115,7 @@ void server_do_rename(struct syscall_data_client *receive_data,
                     struct syscall_data_server *send_data,
                     char *fullpath){
     printf("RENAME\n" );
-    char full_new_path[512];
+    char full_new_path[PATH_MAX];
     strcpy(full_new_path, server_storage_path);
     strcat(full_new_path, receive_data->new_path);
     int res = rename(fullpath, full_new_path);

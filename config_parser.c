@@ -5,7 +5,7 @@
 #include "structures.h"
 
 struct basic_data bas_data;
-struct storage_data storages_data[128];
+struct storage_data storages_data[MAX_MOUNTPOINTS_NUM];
 int storages_count = -1;
 
 int check_parsing();
