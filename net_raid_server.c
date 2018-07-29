@@ -38,17 +38,16 @@ void client_handler(int cfd) {
         strcat(fullpath, receive_data.path);
         if(receive_data.syscall == GETATTR) {
             printf("GETATTR\n" );
-            int res = stat(fullpath, &(send_data.st));
-            if(res < 0) {
-                send_data.res = -errno;
-            }
+            send_data.res = stat(fullpath, &(send_data.st));
+
             printf("server getattr res %d path: %s\n", send_data.res, receive_data.path );
         }else if(receive_data.syscall == OPENDIR){
             printf("OPENDIR\n" );
             DIR *dir =  opendir(fullpath);
             if(dir == NULL){
                 printf("opendir res -1 %s\n", fullpath );
-                send_data.res = -errno;;
+                // send_data.res = -1;
+                send_data.res = -errno;
             }else{
                 printf("opendir res 0 %s\n", fullpath );
                 send_data.res = 0;
@@ -61,7 +60,8 @@ void client_handler(int cfd) {
             DIR *dp =  opendir(fullpath);
             struct dirent *de = readdir(dp);
             if (de == 0) {
-        	   send_data.res = -errno;;
+        	   // send_data.res = -1;
+               send_data.res = -errno;
             }
             int i = 0;
             do {
@@ -69,7 +69,8 @@ void client_handler(int cfd) {
                     printf("filename too large %s\n", de->d_name );
                     // receive_data.filler(send_data.readdir_buffer, de->d_name, NULL, 0) != 0
 
-            	    send_data.res = -errno;;
+            	    // send_data.res = -1;
+                    send_data.res = -errno;
                     break;
             	}else{
                     printf("AEEEEEEEEEEEEEE filename %s\n", de->d_name );

@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h> /* superset of previous */
@@ -88,7 +87,7 @@ static int do_getattr( const char *path, struct stat *st )
 	memcpy ( st, &(receive_data.st), sizeof(struct stat) );
 	printf("getattr res %d\n", receive_data.res);
 	return receive_data.res;
-	// return 0;
+	return 0;
 }
 
 static int do_opendir(const char *path, struct fuse_file_info *fi){
@@ -149,12 +148,13 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 	printf("miigo <3  %d\n", n );
 
 	if(receive_data.res < 0){
-		return receive_data.res;
+		return -errno;
 	}
 
 	int i = 0;
 	for(;i < receive_data.dir_n_files; i++){
 		if(filler(buffer, receive_data.readdir_names[i], NULL, 0) != 0)
+		printf("filler error %s \n", receive_data.readdir_names[i] );
 		return -errno;
 	}
 
