@@ -2,28 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct server{
-    char ip[32];
-    int port;
-};
-
-struct basic_data {
-    char errorlog[256];
-    int cache_size;
-    char cache_replacment[3];
-    int timeout;
-};
-
-
-struct storage_data{
-    char diskname[256];
-    char mountpoint[256];
-    int raid;
-    int servers_num;
-    struct server servers[64];
-    struct server hotswap;
-};
-
+#include "structures.h"
 
 struct basic_data bas_data;
 struct storage_data storages_data[128];

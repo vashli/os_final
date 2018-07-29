@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
-
+#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h> /* superset of previous */
@@ -9,18 +9,85 @@
 #include <stdlib.h>
 #define BACKLOG 10
 
+
+#include "structures.h"
+#include "constants.h"
 #include "config_parser.c"
 
+
+char* server_storage_path;  // yvela servers tavisi eqneba? :( :ddd
+
 void client_handler(int cfd) {
-    char buf[1024];
+    // char buf[1024];
     int data_size;
     while (1) {
-        data_size = read (cfd, &buf, 1024);
-        if (data_size <= 0)
-            break;
+        // data_size = read (cfd, &buf, 1024);
+        // if (data_size <= 0)
+        //     break;
+        // printf("read from client: %s\n", buf);
 
-        printf("read from client: %s\n", buf);
-        write (cfd, &buf, data_size);
+        struct syscall_data_client receive_data;
+        // strcpy(send_data.path, path);
+
+        int n = recv(cfd, &receive_data, sizeof(struct syscall_data_client), 0);
+        printf("miigo <3  %d , %s\n", n, receive_data.path );
+
+        struct syscall_data_server send_data;
+        char fullpath[512];
+        strcpy(fullpath, server_storage_path);
+        strcat(fullpath, receive_data.path);
+        if(receive_data.syscall == GETATTR) {
+            printf("GETATTR\n" );
+            int res = stat(fullpath, &(send_data.st));
+            if(res < 0) {
+                send_data.res = -errno;
+            }
+            printf("server getattr res %d path: %s\n", send_data.res, receive_data.path );
+        }else if(receive_data.syscall == OPENDIR){
+            printf("OPENDIR\n" );
+            DIR *dir =  opendir(fullpath);
+            if(dir == NULL){
+                printf("opendir res -1 %s\n", fullpath );
+                send_data.res = -errno;;
+            }else{
+                printf("opendir res 0 %s\n", fullpath );
+                send_data.res = 0;
+            }
+            send_data.fi.fh = (intptr_t) dir;
+        }else if(receive_data.syscall == READDIR){
+            printf("READDIR\n" );
+
+            //check whiles if etc
+            DIR *dp =  opendir(fullpath);
+            struct dirent *de = readdir(dp);
+            if (de == 0) {
+        	   send_data.res = -errno;;
+            }
+            int i = 0;
+            do {
+            	if (strlen(de->d_name) > 16) {
+                    printf("filename too large %s\n", de->d_name );
+                    // receive_data.filler(send_data.readdir_buffer, de->d_name, NULL, 0) != 0
+
+            	    send_data.res = -errno;;
+                    break;
+            	}else{
+                    printf("AEEEEEEEEEEEEEE filename %s\n", de->d_name );
+                    strcpy(send_data.readdir_names[i], de->d_name);
+                }
+                i++;
+            } while ((de = readdir(dp)) != NULL);
+
+            send_data.dir_n_files = i;
+            send_data.res = 0;
+
+        }else{
+            printf("unknown syscall %d\n", receive_data.syscall);
+        }
+
+        n = send(cfd, &send_data, sizeof(struct syscall_data_server), 0);
+        printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+        // write (cfd, &buf, data_size);
     }
     close(cfd);
 }
@@ -36,7 +103,7 @@ int main(int argc, char* argv[])
         printf("invalid port %s\n", argv[2] );
         return -1;
     }
-    char* server_storage_path = argv[3];
+    server_storage_path = argv[3];
 
     DIR *dir;
     if ((dir = opendir (server_storage_path)) == NULL) {
