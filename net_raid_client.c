@@ -205,6 +205,33 @@ static int do_rmdir(const char *path){
 
 }
 
+static int do_rename(const char *path, const char *new_path){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[rename]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = RENAME;
+	strcpy(send_data.new_path, new_path);
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+
+	return receive_data.res;
+
+}
+
+
 static int do_read( const char *path, char *buffer, size_t size, off_t offset, struct fuse_file_info *fi )
 {
     printf( "--> Reading file %s\n", path );
@@ -231,6 +258,7 @@ static struct fuse_operations operations = {
 	.mkdir 		= do_mkdir,
 	.releasedir = do_releasedir,
 	.rmdir 		= do_rmdir,
+	.rename 	= do_rename,
     .read		= do_read,
 };
 
