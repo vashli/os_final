@@ -81,9 +81,9 @@ void server_do_readdir( struct syscall_data_client *receive_data,
 
 }
 
-void server_do_mkdir( struct syscall_data_client *receive_data,
-                        struct syscall_data_server *send_data,
-                        char *fullpath){
+void server_do_mkdir(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
     printf("MKDIR\n" );
     int res = mkdir(fullpath, receive_data->mode);
     if(res < 0)
@@ -91,7 +91,7 @@ void server_do_mkdir( struct syscall_data_client *receive_data,
     send_data->res = res;
 }
 
-void server_do_releasedir( struct syscall_data_client *receive_data,
+void server_do_releasedir(struct syscall_data_client *receive_data,
                         struct syscall_data_server *send_data,
                         char *fullpath){
     printf("RELEASEDIR\n" );
@@ -100,6 +100,17 @@ void server_do_releasedir( struct syscall_data_client *receive_data,
         res = -errno;
     send_data->res = res;
 }
+
+void server_do_rmdir(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+    printf("RMDIR\n" );
+    int res = rmdir(fullpath);
+    if(res < 0)
+        res = -errno;
+    send_data->res = res;
+}
+
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data){
     char fullpath[512];
@@ -115,6 +126,8 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_mkdir(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == RELEASEDIR){
         server_do_releasedir(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == RMDIR){
+        server_do_rmdir(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }

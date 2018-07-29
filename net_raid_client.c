@@ -112,7 +112,8 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 	printf("miigo <3  %d\n", n );
 
 	if(receive_data.res < 0){
-		return -errno;
+		// return -errno;
+		return receive_data.res;
 	}
 
 	int i = 0;
@@ -125,7 +126,7 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 
 	}
 
-	return 0;
+	return receive_data.res;
 }
 
 static int do_mkdir(const char * path, mode_t mode){
@@ -149,9 +150,6 @@ static int do_mkdir(const char * path, mode_t mode){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
-	if(receive_data.res < 0){
-		return -errno;
-	}
 	return receive_data.res;
 
 }
@@ -177,10 +175,32 @@ static int do_releasedir(const char *path, struct fuse_file_info *fi){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
-	// copy unda????
-	if(receive_data.res < 0){
-		return -errno;
-	}
+
+	return receive_data.res;
+
+}
+static int do_rmdir(const char *path){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[rmdir]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = RMDIR;
+
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+
 	return receive_data.res;
 
 }
@@ -210,6 +230,7 @@ static struct fuse_operations operations = {
     .readdir	= do_readdir,
 	.mkdir 		= do_mkdir,
 	.releasedir = do_releasedir,
+	.rmdir 		= do_rmdir,
     .read		= do_read,
 };
 
