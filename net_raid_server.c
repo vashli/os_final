@@ -22,7 +22,12 @@ void server_do_getattr( struct syscall_data_client *receive_data,
                         struct syscall_data_server *send_data,
                         char *fullpath){
     printf("GETATTR\n" );
-    send_data->res = stat(fullpath, &(send_data->st));
+    int res = stat(fullpath, &(send_data->st));
+    if(res < 0) {
+        send_data->res = -errno;
+    }else{
+        send_data->res = res;
+    }
 
     printf("server getattr res %d path: %s\n", send_data->res, receive_data->path );
 }

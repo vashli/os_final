@@ -54,8 +54,12 @@ static int do_getattr( const char *path, struct stat *st )
 
 	memcpy ( st, &(receive_data.st), sizeof(struct stat) );
 	printf("getattr res %d\n", receive_data.res);
+	// if(receive_data.res < 0) {
+	// 	return -errno;
+	// }
+
 	return receive_data.res;
-	return 0;
+	// return 0;
 }
 
 static int do_opendir(const char *path, struct fuse_file_info *fi){
