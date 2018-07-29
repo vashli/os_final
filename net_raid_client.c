@@ -149,6 +149,34 @@ static int do_mkdir(const char * path, mode_t mode){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+	if(receive_data.res < 0){
+		return -errno;
+	}
+	return receive_data.res;
+
+}
+
+static int do_releasedir(const char *path, struct fuse_file_info *fi){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[releasedir]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = RELEASEDIR;
+	memcpy(&send_data.fi, fi, sizeof(struct fuse_file_info));
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
 	// copy unda????
 	if(receive_data.res < 0){
 		return -errno;
@@ -181,6 +209,7 @@ static struct fuse_operations operations = {
 	.opendir	= do_opendir,
     .readdir	= do_readdir,
 	.mkdir 		= do_mkdir,
+	.releasedir = do_releasedir,
     .read		= do_read,
 };
 

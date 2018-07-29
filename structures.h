@@ -34,7 +34,7 @@ struct syscall_data_client{
     int syscall;
     char path[256];
     mode_t mode;
-
+    struct fuse_file_info fi;
 };
 
 //readdir_names size???? 128 file * (16) saxelis_zoma
