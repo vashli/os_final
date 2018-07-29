@@ -33,16 +33,15 @@ struct storage_data{
 struct syscall_data_client{
     int syscall;
     char path[256];
-    // fuse_fill_dir_t filler;
+    mode_t mode;
 
 };
 
-//buffer_size???? 128 file * (16+16) saxelis_zoma + sxvainfo
+//readdir_names size???? 128 file * (16) saxelis_zoma
 struct syscall_data_server{
     struct stat st;
     struct fuse_file_info fi;
     int res;
-    // char readdir_buffer[4096];
     int dir_n_files;
     char readdir_names[128][16];
 };

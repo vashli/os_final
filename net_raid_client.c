@@ -78,8 +78,10 @@ static int do_opendir(const char *path, struct fuse_file_info *fi){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
-	// copy unda????
+	// copy unda???? ara ls ar mushaobs mere
 	fi = &receive_data.fi;
+
+
 	return receive_data.res;
 }
 
@@ -110,15 +112,46 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 	}
 
 	int i = 0;
+
 	for(;i < receive_data.dir_n_files; i++){
-		if(filler(buffer, receive_data.readdir_names[i], NULL, 0) != 0)
-		printf("filler error %s \n", receive_data.readdir_names[i] );
-		return -errno;
+		if(filler(buffer, receive_data.readdir_names[i], NULL, 0) != 0){
+			printf("filler error %s \n", receive_data.readdir_names[i] );
+			return -errno;
+		}
+
 	}
 
 	return 0;
 }
 
+static int do_mkdir(const char * path, mode_t mode){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[mkdir]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = MKDIR;
+	send_data.mode = mode;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	// copy unda????
+	if(receive_data.res < 0){
+		return -errno;
+	}
+	return receive_data.res;
+
+}
 
 static int do_read( const char *path, char *buffer, size_t size, off_t offset, struct fuse_file_info *fi )
 {
@@ -141,8 +174,9 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 
 static struct fuse_operations operations = {
     .getattr	= do_getattr,
-	.opendir	= do_opendir,  // do not have permissions wers
+	.opendir	= do_opendir,
     .readdir	= do_readdir,
+	.mkdir 		= do_mkdir,
     .read		= do_read,
 };
 

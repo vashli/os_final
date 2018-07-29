@@ -76,6 +76,16 @@ void server_do_readdir( struct syscall_data_client *receive_data,
 
 }
 
+void server_do_mkdir( struct syscall_data_client *receive_data,
+                        struct syscall_data_server *send_data,
+                        char *fullpath){
+    printf("MKDIR\n" );
+    int res = mkdir(fullpath, receive_data->mode);
+    if(res < 0)
+        res = -errno;
+    send_data->res = res;
+}
+
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data){
     char fullpath[512];
@@ -87,6 +97,8 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_opendir(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == READDIR){
         server_do_readdir(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == MKDIR){
+        server_do_mkdir(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }
