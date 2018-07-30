@@ -124,8 +124,52 @@ void server_do_rename(struct syscall_data_client *receive_data,
     send_data->res = res;
 }
 
+void server_do_mknod(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+    printf("MKNOD\n" );
+    int res = mknod(fullpath, receive_data->mode, receive_data->dev);
+    if(res < 0)
+        res = -errno;
+    send_data->res = res;
+}
+void server_do_open(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+    printf("OPEN\n" );
+    int fd =  open(fullpath, receive_data->fi.flags);
+    int res = 0;
+    if(fd < 0){
+        fd = -errno;
+        res = -errno;
+    }
+
+    // receive_data->fi.fh = fd;
+    send_data->open_fd = fd;
+    // memcpy(&(send_data->fi), &(receive_data->fi), sizeof(struct fuse_file_info));
+    send_data->res = res;
+}
+
+void server_do_read(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath, int cfd){
+    printf("READ\n" );
+    char buffer[receive_data->size];
+
+    int res =  pread(receive_data->fi.fh, buffer, receive_data->size, receive_data->offset);
+    if(res < 0){
+        res = -errno;
+        printf("res uaryofitia da sendma sheidzleba aurios %d\n", res);
+    }
+    int n = send(cfd, buffer, res, 0);
+
+    printf("BUFFERISTVIS GAAGZAVNA %d\n", n );
+    send_data->res = res;
+}
+
 void server_syscall_handler(struct syscall_data_client *receive_data,
-                            struct syscall_data_server *send_data){
+                            struct syscall_data_server *send_data,
+                            int cfd){
     char fullpath[512];
     strcpy(fullpath, server_storage_path);
     strcat(fullpath, receive_data->path);
@@ -143,6 +187,12 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_rmdir(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == RENAME){
         server_do_rename(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == MKNOD){
+        server_do_mknod(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == OPEN){
+        server_do_open(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == READ){
+        server_do_read(receive_data, send_data, fullpath, cfd);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }
@@ -163,7 +213,7 @@ void client_handler(int cfd) {
         printf("miigo <3  %d , %s\n", n, receive_data.path );
 
         struct syscall_data_server send_data;
-        server_syscall_handler(&receive_data, &send_data);
+        server_syscall_handler(&receive_data, &send_data, cfd);
 
         n = send(cfd, &send_data, sizeof(struct syscall_data_server), 0);
         printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );

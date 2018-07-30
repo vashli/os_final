@@ -36,9 +36,12 @@ struct storage_data{
 struct syscall_data_client{
     int syscall;
     char path[PATH_MAX];
-    mode_t mode;
     struct fuse_file_info fi;
     char new_path[PATH_MAX];
+    mode_t mode;
+    dev_t dev;
+    size_t size;
+    off_t offset;
 };
 
 //readdir_names size???? 128 file * (16) saxelis_zoma
@@ -48,6 +51,7 @@ struct syscall_data_server{
     int res;
     int dir_n_files;
     char readdir_names[MAX_FILES_NUM][MAX_FILES_NAME];
+    int open_fd;
 };
 
 #pragma pack(0)   // turn packing off

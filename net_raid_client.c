@@ -231,23 +231,108 @@ static int do_rename(const char *path, const char *new_path){
 
 }
 
+static int do_mknod(const char *path, mode_t mode, dev_t dev){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[mknod]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = MKNOD;
+	send_data.mode = mode;
+	send_data.dev = dev;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+
+	return receive_data.res;
+}
+
+static int do_open(const char *path, struct fuse_file_info *fi){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[open]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = OPEN;
+	memcpy(&send_data.fi, fi, sizeof(struct fuse_file_info));
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	///??????????????
+	// memcpy(fi, &receive_data.fi, sizeof(struct fuse_file_info));
+	fi->fh = receive_data.open_fd;
+	return receive_data.res;
+}
 
 static int do_read( const char *path, char *buffer, size_t size, off_t offset, struct fuse_file_info *fi )
 {
-    printf( "--> Reading file %s\n", path );
-    char file54Text[] = "Hello World From File54!";
-    char file349Text[] = "Hello World From File349!";
-    char *selectedText = NULL;
+    // printf( "--> Reading file %s\n", path );
+    // char file54Text[] = "Hello World From File54!";
+    // char file349Text[] = "Hello World From File349!";
+    // char *selectedText = NULL;
+	//
+    // if ( strcmp( path, "/file54" ) == 0 )
+	// 	selectedText = file54Text;
+	// else if ( strcmp( path, "/file349" ) == 0 )
+	// 	selectedText = file349Text;
+	// else
+	// 	return -1;
+	//
+    // memcpy( buffer, selectedText + offset, size );
+	// return strlen( selectedText ) - offset;
 
-    if ( strcmp( path, "/file54" ) == 0 )
-		selectedText = file54Text;
-	else if ( strcmp( path, "/file349" ) == 0 )
-		selectedText = file349Text;
-	else
-		return -1;
 
-    memcpy( buffer, selectedText + offset, size );
-	return strlen( selectedText ) - offset;
+
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[read]  %s\n", path );
+	printf("size %d, offset %d\n", (int)size, (int)offset );
+
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = READ;
+	memcpy(&send_data.fi, fi, sizeof(struct fuse_file_info));
+	send_data.size = size;
+	send_data.offset = offset;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+
+	n = recv(sfd, buffer, size, 0);
+	printf("BUFFERSHI CHAWERA  %d\n", n );
+
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	return receive_data.res;
 }
 
 
@@ -259,7 +344,9 @@ static struct fuse_operations operations = {
 	.releasedir = do_releasedir,
 	.rmdir 		= do_rmdir,
 	.rename 	= do_rename,
-    .read		= do_read,
+	.mknod 		= do_mknod,
+	.open		= do_open,
+	.read		= do_read,
 };
 
 
