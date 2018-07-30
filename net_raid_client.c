@@ -310,7 +310,8 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 
 
 	printf( "[read]  %s\n", path );
-	printf("size %d, offset %d\n", (int)size, (int)offset );
+	printf("size %d, offset %d, buffer_size % d\n",
+	 (int)size, (int)offset, (int)sizeof(*buffer) );
 
 
 	struct syscall_data_client send_data;
@@ -332,9 +333,102 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+
+	printf("size %d, offset %d, buffer_size % d\n",
+	 (int)size, (int)offset, (int)sizeof(*buffer) );
 	return receive_data.res;
 }
 
+static int do_write( const char *path, const char *buffer, size_t size, off_t offset,
+	     struct fuse_file_info *fi)
+{
+
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[write]  %s\n", path );
+	printf("size %d, offset %d\n", (int)size, (int)offset );
+
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = WRITE;
+	memcpy(&send_data.fi, fi, sizeof(struct fuse_file_info));
+	send_data.size = size;
+	send_data.offset = offset;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+
+	n = send(sfd, buffer, size, 0);
+	printf("WRITESTVIS GAIGZAVNA %d %s\n", n , buffer);
+
+
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	return receive_data.res;
+}
+
+
+static int do_truncate(const char *path, off_t newsize){
+
+
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[truncate]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = TRUNCATE;
+	send_data.new_size = newsize;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	return receive_data.res;
+
+}
+
+static int do_release(const char *path, struct fuse_file_info *fi){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[release]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = RELEASE;
+	memcpy(&send_data.fi, fi, sizeof(struct fuse_file_info));
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	return receive_data.res;
+
+
+}
 
 static struct fuse_operations operations = {
     .getattr	= do_getattr,
@@ -347,6 +441,9 @@ static struct fuse_operations operations = {
 	.mknod 		= do_mknod,
 	.open		= do_open,
 	.read		= do_read,
+	.write 		= do_write,
+	.truncate 	= do_truncate,
+	// .release 	= do_release, //something doesnt work
 };
 
 

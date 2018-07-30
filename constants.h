@@ -15,7 +15,9 @@
 #define TRUNCATE    12
 #define ACCESS      13
 #define UTIME       14
-
+#define RELEASE     15
+#define UNLINK      16
+#define CREATE      17
 
 #define MAX_FILES_NUM 128
 #define MAX_FILES_NAME 64 // #define MAX_FILES_NAME 256 linuxshi

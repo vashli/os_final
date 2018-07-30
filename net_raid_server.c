@@ -167,6 +167,57 @@ void server_do_read(struct syscall_data_client *receive_data,
     send_data->res = res;
 }
 
+
+void server_do_write(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath, int cfd){
+
+
+    printf("WRITE\n" );
+    char buffer[receive_data->size];
+    int n = recv(cfd, buffer, receive_data->size, 0);
+
+    printf("WRITESTVIS MIIGO %d %s\n", n, buffer );
+
+    int res =  pwrite(receive_data->fi.fh, buffer, receive_data->size, receive_data->offset);
+
+    printf("after pwrite\n" );
+    if(res < 0){
+        res = -errno;
+        printf("res uaryofitia da sendma sheidzleba aurios %d\n", res);
+    }
+    // int n = send(cfd, buffer, res, 0);
+    send_data->res = res;
+}
+
+
+void server_do_truncate(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+
+    printf("TRUNCATE\n" );
+    int res = truncate(fullpath, receive_data->new_size);
+    if(res < 0){
+        res = -errno;
+    }
+
+    send_data->res = res;
+}
+
+void server_do_release(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+
+
+    printf("RELEASE\n" );
+    int res = close(receive_data->fi.fh);
+    if(res < 0){
+        res = -errno;
+    }
+    send_data->res = res;
+}
+
+
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data,
                             int cfd){
@@ -193,6 +244,12 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_open(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == READ){
         server_do_read(receive_data, send_data, fullpath, cfd);
+    }else if(receive_data->syscall == WRITE){
+        server_do_write(receive_data, send_data, fullpath, cfd);
+    }else if(receive_data->syscall == TRUNCATE){
+        server_do_truncate(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == RELEASE){
+        server_do_release(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }
