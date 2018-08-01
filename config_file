@@ -14,3 +14,9 @@ mountpoint = /path/to/mountpoint2
 raid = 5
 servers = 127.0.0.1:10011, 127.0.0.1:10012, 127.0.0.1:10013
 hotswap = 127.0.0.1:22222
+
+diskname = STORAGE3
+mountpoint = /home/mari/Desktop/final_project_desktop/mountpoint2
+raid = 1
+servers = 127.0.0.1:10002, 127.0.0.1:10001,
+hotswap = 127.0.0.1:11111

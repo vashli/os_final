@@ -20,8 +20,8 @@
 #include "constants.h"
 #include "config_parser.c"
 
-
-int sfds[64];
+int mountpoint_index;
+int sfds[MAX_SERVERS_ON_STORAGE];
 
 // unda gaarkvio romeli mountpointidan gamoidzaxeba da shesabamisad
 // romeli serveris path unda sheesabamebodes?
@@ -31,7 +31,7 @@ static int do_getattr( const char *path, struct stat *st )
 	printf( "\tAttributes of %s requested\n", path );
 
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -67,7 +67,7 @@ static int do_getattr( const char *path, struct stat *st )
 
 static int do_opendir(const char *path, struct fuse_file_info *fi){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -99,7 +99,7 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 {
 
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -137,7 +137,7 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 
 static int do_mkdir(const char * path, mode_t mode){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -166,7 +166,7 @@ static int do_mkdir(const char * path, mode_t mode){
 
 static int do_releasedir(const char *path, struct fuse_file_info *fi){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -195,7 +195,7 @@ static int do_releasedir(const char *path, struct fuse_file_info *fi){
 }
 static int do_rmdir(const char *path){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -225,7 +225,7 @@ static int do_rmdir(const char *path){
 
 static int do_rename(const char *path, const char *new_path){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -254,7 +254,7 @@ static int do_rename(const char *path, const char *new_path){
 
 static int do_mknod(const char *path, mode_t mode, dev_t dev){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -283,7 +283,7 @@ static int do_mknod(const char *path, mode_t mode, dev_t dev){
 
 static int do_open(const char *path, struct fuse_file_info *fi){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -334,7 +334,7 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 
 
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -380,7 +380,7 @@ static int do_write( const char *path, const char *buffer, size_t size, off_t of
 {
 
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -424,7 +424,7 @@ static int do_truncate(const char *path, off_t newsize){
 
 
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -453,7 +453,7 @@ static int do_truncate(const char *path, off_t newsize){
 
 static int do_release(const char *path, struct fuse_file_info *fi){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -484,7 +484,7 @@ static int do_release(const char *path, struct fuse_file_info *fi){
 
 static int do_unlink(const char *path){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -513,7 +513,7 @@ static int do_unlink(const char *path){
 
 static int do_access(const char *path, int mode){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -544,7 +544,7 @@ static int do_access(const char *path, int mode){
 
 static int do_create(const char *path, mode_t mode, struct fuse_file_info *fi){
 	// dasaweria
-	int mountpoint_index = 0;
+	// int mountpoint_index = 0;
 	int server_index = 0;
 	int sfd = sfds[server_index];
 
@@ -598,7 +598,8 @@ static struct fuse_operations operations = {
 int connect_to_servers(int index){
 	struct storage_data stor = storages_data[index];
 	int i = 0;
-	for(; i < stor.servers_num; i++){
+	// tmp to test several mountpoints
+	// for(; i < stor.servers_num; i++){
 		char * server_ip = stor.servers[i].ip;
 		int port = stor.servers[i].port;
 
@@ -634,7 +635,7 @@ int connect_to_servers(int index){
 		//mount via fuse
 
 		// close(sfd);
-	}
+	// }
 
 }
 
@@ -648,6 +649,7 @@ int main(int argc, char *argv[]){
 
     int i = 0;
     for(; i < storages_count; i++){
+		mountpoint_index = i;
         struct storage_data stor = storages_data[i];
         if(stor.raid == 1){
             printf("stor.mountpoint %s\n", stor.mountpoint );
@@ -666,14 +668,24 @@ int main(int argc, char *argv[]){
                 // return fuse_main( argc, argv, &operations, NULL );
 
                 // run in foreground
-                int argcc = 3;
-                char * argvv[argcc];
-                argvv[0] = malloc(256);
-                argvv[1] = malloc(256);
-                argvv[2] = malloc(256);
-                strcpy(argvv[0], argv[0]);
-                argvv[1] = "-f";
-                strcpy(argvv[2], stor.mountpoint);
+                // int argcc = 3;
+                // char * argvv[argcc];
+                // argvv[0] = malloc(256);
+                // argvv[1] = malloc(256);
+                // argvv[2] = malloc(256);
+                // strcpy(argvv[0], argv[0]);
+                // argvv[1] = "-f";
+                // strcpy(argvv[2], stor.mountpoint);
+
+
+				int argcc = 2;
+				char * argvv[argcc];
+				argvv[0] = malloc(256);
+				argvv[1] = malloc(256);
+				// argvv[2] = malloc(256);
+				strcpy(argvv[0], argv[0]);
+				// argvv[1] = "-f";
+				strcpy(argvv[1], stor.mountpoint);
 
                 return fuse_main( argcc, argvv, &operations, NULL );
 
