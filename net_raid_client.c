@@ -38,6 +38,8 @@ static int do_getattr( const char *path, struct stat *st )
 	struct syscall_data_client send_data;
 	strcpy(send_data.path, path);
 	send_data.syscall = GETATTR;
+	// mgoni sawiroa
+	memcpy ( &(send_data.st), st, sizeof(struct stat) );
 
 	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
 	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
@@ -53,10 +55,11 @@ static int do_getattr( const char *path, struct stat *st )
 	// return receive_data.res;
 
 	memcpy ( st, &(receive_data.st), sizeof(struct stat) );
-	printf("getattr res %d\n", receive_data.res);
-	// if(receive_data.res < 0) {
-	// 	return -errno;
-	// }
+
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!getattr] %s, %d\n", path , receive_data.res);
+	}
 
 	return receive_data.res;
 	// return 0;
@@ -85,6 +88,9 @@ static int do_opendir(const char *path, struct fuse_file_info *fi){
 	// copy unda???? ara ls ar mushaobs mere
 	fi = &receive_data.fi;
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!opendir] %s, %d\n", path , receive_data.res);
+	}
 
 	return receive_data.res;
 }
@@ -111,19 +117,19 @@ static int do_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, o
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
-	if(receive_data.res < 0){
-		// return -errno;
-		return receive_data.res;
-	}
+
 
 	int i = 0;
 
 	for(;i < receive_data.dir_n_files; i++){
 		if(filler(buffer, receive_data.readdir_names[i], NULL, 0) != 0){
 			printf("filler error %s \n", receive_data.readdir_names[i] );
-			return -errno;
+
 		}
 
+	}
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!readdir] %s, %d\n", path , receive_data.res);
 	}
 
 	return receive_data.res;
@@ -149,6 +155,10 @@ static int do_mkdir(const char * path, mode_t mode){
 	struct syscall_data_server receive_data;
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!mkdir] %s, %d\n", path , receive_data.res);
+	}
 
 	return receive_data.res;
 
@@ -176,6 +186,10 @@ static int do_releasedir(const char *path, struct fuse_file_info *fi){
 	printf("miigo <3  %d\n", n );
 
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!release] %s, %d\n", path , receive_data.res);
+	}
+
 	return receive_data.res;
 
 }
@@ -199,6 +213,10 @@ static int do_rmdir(const char *path){
 	struct syscall_data_server receive_data;
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!rmdir] %s, %d\n", path , receive_data.res);
+	}
 
 
 	return receive_data.res;
@@ -226,6 +244,9 @@ static int do_rename(const char *path, const char *new_path){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!rename] %s, %d\n", path , receive_data.res);
+	}
 
 	return receive_data.res;
 
@@ -253,6 +274,9 @@ static int do_mknod(const char *path, mode_t mode, dev_t dev){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!mknod] %s, %d\n", path , receive_data.res);
+	}
 
 	return receive_data.res;
 }
@@ -281,6 +305,12 @@ static int do_open(const char *path, struct fuse_file_info *fi){
 	///??????????????
 	// memcpy(fi, &receive_data.fi, sizeof(struct fuse_file_info));
 	fi->fh = receive_data.open_fd;
+
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!oprn] %s, %d\n", path , receive_data.res);
+	}
+
 	return receive_data.res;
 }
 
@@ -336,6 +366,12 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 
 	printf("size %d, offset %d, buffer_size % d\n",
 	 (int)size, (int)offset, (int)sizeof(*buffer) );
+
+
+	 if( receive_data.res < 0) {
+		 printf( "[!!!!!!!!!read] %s, %d\n", path , receive_data.res);
+	 }
+
 	return receive_data.res;
 }
 
@@ -373,6 +409,13 @@ static int do_write( const char *path, const char *buffer, size_t size, off_t of
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+
+	memcpy(fi, &(receive_data.fi), sizeof(struct fuse_file_info));
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!write] %s, %d\n", path , receive_data.res);
+	}
+
 	return receive_data.res;
 }
 
@@ -400,6 +443,10 @@ static int do_truncate(const char *path, off_t newsize){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!truncate] %s, %d\n", path , receive_data.res);
+	}
+
 	return receive_data.res;
 
 }
@@ -425,6 +472,10 @@ static int do_release(const char *path, struct fuse_file_info *fi){
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!release] %s, %d\n", path , receive_data.res);
+	}
+
 	return receive_data.res;
 
 
@@ -443,7 +494,7 @@ static struct fuse_operations operations = {
 	.read		= do_read,
 	.write 		= do_write,
 	.truncate 	= do_truncate,
-	// .release 	= do_release, //something doesnt work
+	.release 	= do_release, //something doesnt work
 };
 
 

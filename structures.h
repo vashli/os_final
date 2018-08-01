@@ -43,6 +43,7 @@ struct syscall_data_client{
     size_t size;
     off_t offset;
     int new_size;
+    struct stat st;
 };
 
 //readdir_names size???? 128 file * (16) saxelis_zoma

@@ -22,12 +22,14 @@ void server_do_getattr( struct syscall_data_client *receive_data,
                         struct syscall_data_server *send_data,
                         char *fullpath){
     printf("GETATTR\n" );
-    int res = stat(fullpath, &(send_data->st));
+    int res = stat(fullpath, &(receive_data->st));
     if(res < 0) {
         send_data->res = -errno;
     }else{
         send_data->res = res;
     }
+
+    memcpy ( &(send_data->st), &(receive_data->st), sizeof(struct stat) );
 
     printf("server getattr res %d path: %s\n", send_data->res, receive_data->path );
 }
@@ -186,6 +188,8 @@ void server_do_write(struct syscall_data_client *receive_data,
         res = -errno;
         printf("res uaryofitia da sendma sheidzleba aurios %d\n", res);
     }
+
+    memcpy(&(send_data->fi), &(receive_data->fi), sizeof(struct fuse_file_info));
     // int n = send(cfd, buffer, res, 0);
     send_data->res = res;
 }
