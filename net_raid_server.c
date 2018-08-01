@@ -246,6 +246,25 @@ void server_do_access(struct syscall_data_client *receive_data,
     }
     send_data->res = res;
 }
+
+void server_do_create(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+    printf("CREATE\n" );
+    int fd =  creat(fullpath, receive_data->mode);
+    int res = 0;
+    if(fd < 0){
+        // fd = -errno;  ????
+        res = -errno;
+    }
+
+    // receive_data->fi.fh = fd;
+    send_data->open_fd = fd;
+    // memcpy(&(send_data->fi), &(receive_data->fi), sizeof(struct fuse_file_info));
+    send_data->res = res;
+}
+
+
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data,
                             int cfd){
@@ -282,6 +301,8 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_unlink(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == ACCESS){
         server_do_access(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == CREATE){
+        server_do_create(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }

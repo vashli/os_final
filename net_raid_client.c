@@ -541,6 +541,39 @@ static int do_access(const char *path, int mode){
 }
 
 
+
+static int do_create(const char *path, mode_t mode, struct fuse_file_info *fi){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[create]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = CREATE;
+	send_data.mode = mode;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!create] %s, %d\n", path , receive_data.res);
+	}
+
+	fi->fh = receive_data.open_fd;
+	return receive_data.res;
+}
+
+
+
 static struct fuse_operations operations = {
     .getattr	= do_getattr,
 	.opendir	= do_opendir,
@@ -557,6 +590,7 @@ static struct fuse_operations operations = {
 	.release 	= do_release, //something doesnt work
 	.unlink 	= do_unlink,
 	.access 	= do_access,
+	.create 	= do_create,
 	// .utime 		= do_utime,
 };
 
