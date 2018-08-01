@@ -234,7 +234,18 @@ void server_do_unlink(struct syscall_data_client *receive_data,
     send_data->res = res;
 }
 
+void server_do_access(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
 
+
+    printf("ACCESS\n" );
+    int res = access(fullpath, receive_data->mode);
+    if(res < 0){
+        res = -errno;
+    }
+    send_data->res = res;
+}
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data,
                             int cfd){
@@ -269,6 +280,8 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_release(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == UNLINK){
         server_do_unlink(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == ACCESS){
+        server_do_access(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }

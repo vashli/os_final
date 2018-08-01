@@ -511,6 +511,36 @@ static int do_unlink(const char *path){
 }
 
 
+static int do_access(const char *path, int mode){
+	// dasaweria
+	int mountpoint_index = 0;
+	int server_index = 0;
+	int sfd = sfds[server_index];
+
+
+	printf( "[access]  %s\n", path );
+
+	struct syscall_data_client send_data;
+	strcpy(send_data.path, path);
+	send_data.syscall = ACCESS;
+	send_data.mode = mode;
+
+	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
+	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
+
+	struct syscall_data_server receive_data;
+
+	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
+	printf("miigo <3  %d\n", n );
+
+	if( receive_data.res < 0) {
+		printf( "[!!!!!!!!!access] %s, %d\n", path , receive_data.res);
+	}
+
+	return receive_data.res;
+}
+
+
 static struct fuse_operations operations = {
     .getattr	= do_getattr,
 	.opendir	= do_opendir,
@@ -526,6 +556,8 @@ static struct fuse_operations operations = {
 	.truncate 	= do_truncate,
 	.release 	= do_release, //something doesnt work
 	.unlink 	= do_unlink,
+	.access 	= do_access,
+	// .utime 		= do_utime,
 };
 
 
