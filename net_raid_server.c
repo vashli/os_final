@@ -221,6 +221,19 @@ void server_do_release(struct syscall_data_client *receive_data,
     send_data->res = res;
 }
 
+void server_do_unlink(struct syscall_data_client *receive_data,
+                    struct syscall_data_server *send_data,
+                    char *fullpath){
+
+
+    printf("UNLINK\n" );
+    int res = unlink(fullpath);
+    if(res < 0){
+        res = -errno;
+    }
+    send_data->res = res;
+}
+
 
 void server_syscall_handler(struct syscall_data_client *receive_data,
                             struct syscall_data_server *send_data,
@@ -254,6 +267,8 @@ void server_syscall_handler(struct syscall_data_client *receive_data,
         server_do_truncate(receive_data, send_data, fullpath);
     }else if(receive_data->syscall == RELEASE){
         server_do_release(receive_data, send_data, fullpath);
+    }else if(receive_data->syscall == UNLINK){
+        server_do_unlink(receive_data, send_data, fullpath);
     }else{
         printf("unknown syscall %d\n", receive_data->syscall);
     }
