@@ -69,7 +69,7 @@ static int do_getattr( const char *path, struct stat *st )
 	// off_t     st_size;        /* Total size, in bytes */
 	// blksize_t st_blksize;     /* Block size for filesystem I/O */
 	// blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
-	
+
 	printf("received st_dev  %d\n",st->st_dev );
 	printf("received st_ino  %d\n",st->st_ino);
 	printf("received st_mode %d \n",st->st_mode );
@@ -379,9 +379,17 @@ static int do_read( const char *path, char *buffer, size_t size, off_t offset, s
 	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
 	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
 
+	int server_res;
 
-	n = recv(sfd, buffer, size, 0);
-	printf("BUFFERSHI CHAWERA  %d\n", n );
+	n = recv(sfd, &server_res, sizeof(int), 0);
+	printf("received res %d\n", server_res );
+
+	if(n > 0 && server_res > 0) {
+		// n = recv(sfd, buffer, size, 0);
+		n = recv(sfd, buffer, server_res, 0);
+		printf("BUFFERSHI CHAWERA  %d\n", n );
+	}
+
 
 
 	struct syscall_data_server receive_data;
@@ -693,14 +701,16 @@ int main(int argc, char *argv[]){
                 // return fuse_main( argc, argv, &operations, NULL );
 
                 // run in foreground
-                int argcc = 3;
+                int argcc = 4;
                 char * argvv[argcc];
                 argvv[0] = malloc(256);
                 argvv[1] = malloc(256);
                 argvv[2] = malloc(256);
+				argvv[3] = malloc(256);
                 strcpy(argvv[0], argv[0]);
                 argvv[1] = "-f";
-                strcpy(argvv[2], stor.mountpoint);
+				argvv[2] = "-s";
+                strcpy(argvv[3], stor.mountpoint);
 
 
 

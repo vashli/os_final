@@ -24,7 +24,7 @@ void server_do_getattr( struct syscall_data_client *receive_data,
     printf("GETATTR\n" );
 
     // memcpy ( &(send_data->st), &(receive_data->st), sizeof(struct stat) );
-    
+
     int res = lstat(fullpath, &(send_data->st));
     if(res < 0) {
         send_data->res = -errno;
@@ -32,7 +32,18 @@ void server_do_getattr( struct syscall_data_client *receive_data,
         send_data->res = res;
     }
 
-    // memcpy ( &(send_data->st), &(receive_data->st), sizeof(struct stat) );
+    printf("send st_dev  %d\n",send_data->st.st_dev );
+    printf("send st_ino  %d\n",send_data->st.st_ino);
+    printf("send st_mode %d \n",send_data->st.st_mode );
+    printf("send st_nlink %d\n",send_data->st.st_nlink );
+    printf("send st_uid  %d\n",send_data->st.st_uid );
+    printf("send st_gid  %d\n",send_data->st.st_gid );
+    printf("send st_rdev %d \n",send_data->st.st_rdev );
+    printf("send st_size %d \n",send_data->st.st_size );
+    printf("send st_rdev %d \n",send_data->st.st_rdev );
+    printf("send st_blksize %d \n",send_data->st.st_blksize );
+    printf("send st_blocks %d \n",send_data->st.st_blocks );
+
 
     printf("server getattr res %d path: %s\n", send_data->res, receive_data->path );
 }
@@ -166,9 +177,14 @@ void server_do_read(struct syscall_data_client *receive_data,
         res = -errno;
         printf("res uaryofitia da sendma sheidzleba aurios %d\n", res);
     }
-    int n = send(cfd, buffer, res, 0);
 
-    printf("BUFFERISTVIS GAAGZAVNA %d\n", n );
+    // shesacvlelia calke struqturebze
+    int n = send(cfd, &res, sizeof(int), 0);
+    if(res > 0) {
+        n = send(cfd, buffer, res, 0);
+        printf("BUFFERISTVIS GAAGZAVNA %d\n", n );
+    }
+
     send_data->res = res;
 }
 
