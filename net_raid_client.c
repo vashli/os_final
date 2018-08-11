@@ -38,8 +38,9 @@ static int do_getattr( const char *path, struct stat *st )
 	struct syscall_data_client send_data;
 	strcpy(send_data.path, path);
 	send_data.syscall = GETATTR;
+
 	// mgoni sawiroa
-	memcpy ( &(send_data.st), st, sizeof(struct stat) );
+	// memcpy ( &(send_data.st), st, sizeof(struct stat) );
 
 	int n = send(sfd, &send_data, sizeof(struct syscall_data_client), 0);
 	printf("gagzavnaaaaaaaaaaaaaaaaaa <3  %d\n", n );
@@ -48,7 +49,8 @@ static int do_getattr( const char *path, struct stat *st )
 	n = recv(sfd, &receive_data, sizeof(struct syscall_data_server), 0);
 	printf("miigo <3  %d\n", n );
 
-	printf("received st.uid %d  \n",receive_data.st.st_uid );
+
+
 
 	// st = &receive_data.st;
 	// printf("set uid %d  Current %d\n",st->st_uid, getuid() );
@@ -56,13 +58,36 @@ static int do_getattr( const char *path, struct stat *st )
 
 	memcpy ( st, &(receive_data.st), sizeof(struct stat) );
 
+	//
+	// dev_t     st_dev;         /* ID of device containing file */
+	// ino_t     st_ino;         /* Inode number */
+	// mode_t    st_mode;        /* File type and mode */
+	// nlink_t   st_nlink;       /* Number of hard links */
+	// uid_t     st_uid;         /* User ID of owner */
+	// gid_t     st_gid;         /* Group ID of owner */
+	// dev_t     st_rdev;        /* Device ID (if special file) */
+	// off_t     st_size;        /* Total size, in bytes */
+	// blksize_t st_blksize;     /* Block size for filesystem I/O */
+	// blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+	
+	printf("received st_dev  %d\n",st->st_dev );
+	printf("received st_ino  %d\n",st->st_ino);
+	printf("received st_mode %d \n",st->st_mode );
+	printf("received st_nlink %d\n",st->st_nlink );
+	printf("received st_uid  %d\n",st->st_uid );
+	printf("received st_gid  %d\n",st->st_gid );
+	printf("received st_rdev %d \n",st->st_rdev );
+	printf("received st_size %d \n",st->st_size );
+	printf("received st_rdev %d \n",st->st_rdev );
+	printf("received st_blksize %d \n",st->st_blksize );
+	printf("received st_blocks %d \n",st->st_blocks );
+
 
 	if( receive_data.res < 0) {
 		printf( "[!!!!!!!!!getattr] %s, %d\n", path , receive_data.res);
 	}
 
 	return receive_data.res;
-	// return 0;
 }
 
 static int do_opendir(const char *path, struct fuse_file_info *fi){
@@ -663,29 +688,32 @@ int main(int argc, char *argv[]){
 
 				//run fuse_main
 
-                // run in background
+
                 // strcpy(argv[1], stor.mountpoint);
                 // return fuse_main( argc, argv, &operations, NULL );
 
                 // run in foreground
-                // int argcc = 3;
-                // char * argvv[argcc];
-                // argvv[0] = malloc(256);
-                // argvv[1] = malloc(256);
-                // argvv[2] = malloc(256);
-                // strcpy(argvv[0], argv[0]);
-                // argvv[1] = "-f";
-                // strcpy(argvv[2], stor.mountpoint);
+                int argcc = 3;
+                char * argvv[argcc];
+                argvv[0] = malloc(256);
+                argvv[1] = malloc(256);
+                argvv[2] = malloc(256);
+                strcpy(argvv[0], argv[0]);
+                argvv[1] = "-f";
+                strcpy(argvv[2], stor.mountpoint);
 
 
-				int argcc = 2;
-				char * argvv[argcc];
-				argvv[0] = malloc(256);
-				argvv[1] = malloc(256);
-				// argvv[2] = malloc(256);
-				strcpy(argvv[0], argv[0]);
-				// argvv[1] = "-f";
-				strcpy(argvv[1], stor.mountpoint);
+
+				    // run in background
+				//
+				// int argcc = 2;
+				// char * argvv[argcc];
+				// argvv[0] = malloc(256);
+				// argvv[1] = malloc(256);
+				// // argvv[2] = malloc(256);
+				// strcpy(argvv[0], argv[0]);
+				// // argvv[1] = "-f";
+				// strcpy(argvv[1], stor.mountpoint);
 
                 return fuse_main( argcc, argvv, &operations, NULL );
 
